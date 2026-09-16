@@ -1,0 +1,48 @@
+name: Daily Download freenode.yaml
+
+on:
+  schedule:
+    # 北京时间每天 10:00 运行 (UTC 2:00)
+    - cron: '0 2 * * *'
+  workflow_dispatch:   # 允许手动触发
+
+permissions:
+  contents: write
+
+jobs:
+  download:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}  # 显式使用默认 token
+
+      - name: Run download script
+        run: bash scripts/download.sh
+
+      - name: Commit and push changes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+          # 检查文件是否有变化
+          if git diff --quiet freenode.yaml; then
+            echo "No changes to freenode.yaml, skipping commit"
+            exit 0
+          fi
+
+          # 添加并提交
+          git add freenode.yaml
+          git commit -m "Update freenode.yaml $(date '+%Y-%m-%d %H:%M:%S')"
+
+          # 拉取最新远程代码（使用 rebase 避免 merge 提交）
+          git pull --rebase origin ${{ github.ref_name }} || {
+            echo "❌ Git pull failed, please check conflicts"
+            exit 1
+          }
+
+          # 推送
+          git push origin ${{ github.ref_name }}
