@@ -2,7 +2,7 @@ name: Daily Download freenode.yaml
 
 on:
   schedule:
-    # 北京时间每天 10:00 运行 (UTC 2:00)
+    # 北京时间每天 10:00 (UTC 02:00)
     - cron: '0 2 * * *'
   workflow_dispatch:
 
@@ -18,26 +18,16 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Debug - show repo layout
+      - name: Download freenode.yaml
         run: |
-          echo "=== pwd ==="
-          pwd
-          echo "=== root ==="
-          ls -la
-          echo "=== scripts dir ==="
-          ls -la scripts/ || echo "scripts/ NOT FOUND"
-          echo "=== find download.sh ==="
-          find . -name "download.sh" -not -path "./.git/*"
-          echo "=== file type ==="
-          file scripts/download.sh || true
-
-      - name: Fix line endings (CRLF -> LF)
-        run: |
-          sed -i 's/\r$//' scripts/download.sh
-          chmod +x scripts/download.sh
-
-      - name: Run download script
-        run: bash scripts/download.sh
+          TZ='Asia/Shanghai'
+          YEAR=$(TZ=$TZ date +'%Y')
+          MONTH=$(TZ=$TZ date +'%m')
+          DATE8=$(TZ=$TZ date +'%Y%m%d')
+          URL="https://static.v2rayshare.net/${YEAR}/${MONTH}/${DATE8}.yaml"
+          echo "Downloading from: $URL"
+          curl -L -f "$URL" -o freenode.yaml
+          test -s freenode.yaml && echo "OK" || { echo "Download failed"; exit 1; }
 
       - name: Commit and push changes
         env:
@@ -46,13 +36,10 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           if git diff --quiet freenode.yaml; then
-            echo "No changes to freenode.yaml, skipping commit"
+            echo "No changes, skipping"
             exit 0
           fi
           git add freenode.yaml
           git commit -m "Update freenode.yaml $(date '+%Y-%m-%d %H:%M:%S')"
-          git pull --rebase origin ${{ github.ref_name }} || {
-            echo "❌ Git pull failed, please check conflicts"
-            exit 1
-          }
+          git pull --rebase origin ${{ github.ref_name }} || { echo "pull failed"; exit 1; }
           git push origin ${{ github.ref_name }}
