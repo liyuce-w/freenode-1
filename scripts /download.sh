@@ -1,15 +1,16 @@
 #!/bin/bash
 set -e  # 任何命令失败则立即退出
 
-# 获取当前日期（使用 UTC 时间；如需北京时间可加 TZ=Asia/Shanghai）
-YEAR=$(date +'%Y')
-MONTH=$(date +'%m')
-DATE8=$(date +'%Y%m%d')
+# 使用北京时间，避免 UTC 边界问题
+TZ='Asia/Shanghai'
+YEAR=$(TZ=$TZ date +'%Y')
+MONTH=$(TZ=$TZ date +'%m')
+DATE8=$(TZ=$TZ date +'%Y%m%d')
 
 # 构造目标 URL
 URL="https://static.v2rayshare.net/${YEAR}/${MONTH}/${DATE8}.yaml"
 
-# 输出文件路径（项目根目录）
+# 输出文件路径（仓库根目录）
 OUTPUT_FILE="./freenode.yaml"
 
 echo "Downloading from: $URL"
