@@ -1,5 +1,19 @@
 name: Daily Download freenode.yaml
 
+
+      - name: Debug line endings
+        run: |
+          echo "=== pwd ==="
+          pwd
+          echo "=== files ==="
+          ls -la
+          echo "=== scripts dir ==="
+          ls -la scripts/
+          echo "=== file type ==="
+          file scripts/download.sh
+          echo "=== first line raw ==="
+          head -1 scripts/download.sh | cat -A
+
 on:
   schedule:
     # 北京时间每天 10:00 运行 (UTC 2:00)
