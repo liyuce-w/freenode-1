@@ -46,10 +46,3 @@ jobs:
 
           # 推送
           git push origin ${{ github.ref_name }}
-      - name: Debug
-        run: |
-          pwd
-          ls -la
-          ls -la scripts/
-          file scripts/download.sh
-          head -1 scripts/download.sh | cat -A
