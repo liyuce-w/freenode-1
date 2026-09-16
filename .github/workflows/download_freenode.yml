@@ -35,11 +35,19 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          if git diff --quiet freenode.yaml; then
-            echo "No changes, skipping"
+
+          git add freenode.yaml
+
+          if git diff --cached --quiet; then
+            echo "No changes to freenode.yaml, skipping commit"
             exit 0
           fi
-          git add freenode.yaml
+
           git commit -m "Update freenode.yaml $(date '+%Y-%m-%d %H:%M:%S')"
-          git pull --rebase origin ${{ github.ref_name }} || { echo "pull failed"; exit 1; }
+
+          git pull --rebase origin ${{ github.ref_name }} || {
+            echo "Git pull failed"
+            exit 1
+          }
+
           git push origin ${{ github.ref_name }}
